@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>今天去哪玩？</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff4e8;
+      text-align: center;
+      padding: 50px 20px;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 420px;
+      margin: auto;
+      box-shadow: 0 5px 20px #ddd;
+    }
+    button {
+      background: #e78955;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    #result { font-size: 26px; margin: 25px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎡 今天去哪玩？</h1>
+    <p>不知道去哪裡？按一下抽籤！</p>
+    <div id="result">準備出發</div>
+    <button onclick="draw()">🎲 隨機抽景點</button>
+  </div>
+  <script>
+    const places = [
+      "台南老街", "日月潭", "高美濕地",
+      "逢甲夜市", "鹿港老街", "阿里山"
+    ];
+    function draw() {
+      const i = Math.floor(Math.random() * places.length);
+      document.getElementById("result").textContent = places[i];
+    }
+  </script>
+</body>
+</html>
