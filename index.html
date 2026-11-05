@@ -4,48 +4,215 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>今天去哪玩？</title>
+  <title>台灣景點探索地圖</title>
+
+  <!-- 載入 Leaflet 地圖工具 -->
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #fff4e8;
+      margin: 0;
+      font-family: Arial, "Microsoft JhengHei", sans-serif;
+      background: #fff5eb;
+      color: #333;
+    }
+    header {
       text-align: center;
-      padding: 50px 20px;
+      padding: 25px 15px;
+      background: #e78b59;
+      color: white;
+    }
+    header h1 { margin: 0 0 10px; }
+    main {
+      max-width: 950px;
+      margin: 25px auto;
+      padding: 0 15px;
     }
     .card {
       background: white;
-      padding: 30px;
-      border-radius: 20px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 5px 20px #ddd;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px #00000012;
+      text-align: center;
+    }
+    #map {
+      height: 480px;
+      border-radius: 12px;
+      z-index: 0;
     }
     button {
-      background: #e78955;
+      background: #e78b59;
       color: white;
-      padding: 15px 30px;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
+      padding: 14px 25px;
+      font-size: 17px;
       cursor: pointer;
     }
-    #result { font-size: 26px; margin: 25px; }
+    button:hover { background: #c7683d; }
+    #result {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 18px 0;
+    }
+    .place-buttons button {
+      font-size: 14px;
+      padding: 10px;
+      margin: 5px;
+    }
+    a { color: #bf6438; }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>🎡 今天去哪玩？</h1>
-    <p>不知道去哪裡？按一下抽籤！</p>
-    <div id="result">準備出發</div>
-    <button onclick="draw()">🎲 隨機抽景點</button>
-  </div>
+  <header>
+    <h1>🗺️ 台灣景點探索地圖</h1>
+    <p>跟著地圖，一起發現台灣好玩的地方！</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>🎲 今天去哪玩？</h2>
+      <p>按下按鈕，隨機抽出旅遊目的地</p>
+      <div id="result">準備出發！</div>
+      <button onclick="drawPlace()">隨機抽景點</button>
+    </section>
+
+    <section class="card">
+      <h2>📍 台灣旅遊地圖</h2>
+      <p>點選地圖上的標記，查看景點資訊</p>
+      <div id="map"></div>
+    </section>
+
+    <section class="card">
+      <h2>🏞️ 快速選擇景點</h2>
+      <div id="placeButtons" class="place-buttons"></div>
+    </section>
+  </main>
+
   <script>
+    // 景點資料：名稱、緯度、經度、介紹
     const places = [
-      "台南老街", "日月潭", "高美濕地",
-      "逢甲夜市", "鹿港老街", "阿里山"
+      {
+        name: "台北101",
+        lat: 25.0339, lng: 121.5645,
+        desc: "台北著名地標，可以欣賞城市景觀。"
+      },
+      {
+        name: "九份老街",
+        lat: 25.1099, lng: 121.8452,
+        desc: "充滿懷舊風情的山城與特色小吃。"
+      },
+      {
+        name: "高美濕地",
+        lat: 24.3128, lng: 120.5495,
+        desc: "台中知名的夕陽與濕地景點。"
+      },
+      {
+        name: "日月潭",
+        lat: 23.8573, lng: 120.9159,
+        desc: "南投知名湖泊，適合騎自行車及搭船。"
+      },
+      {
+        name: "阿里山",
+        lat: 23.5107, lng: 120.8021,
+        desc: "以森林、雲海、日出聞名。"
+      },
+      {
+        name: "安平古堡",
+        lat: 23.0015, lng: 120.1608,
+        desc: "台南著名古蹟，附近有許多特色美食。"
+      },
+      {
+        name: "駁二藝術特區",
+        lat: 22.6205, lng: 120.2817,
+        desc: "高雄充滿創意與藝術氣息的景點。"
+      },
+      {
+        name: "太魯閣國家公園",
+        lat: 24.1588, lng: 121.6225,
+        desc: "花蓮壯麗的峽谷景觀，造訪前請確認開放情況。"
+      },
+      {
+        name: "伯朗大道",
+        lat: 23.0992, lng: 121.2156,
+        desc: "台東池上著名的田園風景。"
+      },
+      {
+        name: "墾丁白沙灣",
+        lat: 21.9320, lng: 120.7178,
+        desc: "屏東著名的海灘與海岸風光。"
+      }
     ];
-    function draw() {
-      const i = Math.floor(Math.random() * places.length);
-      document.getElementById("result").textContent = places[i];
+
+    // 建立台灣地圖
+    const map = L.map("map").setView(
+      [23.8, 120.9], 7
+    );
+
+    // 載入 OpenStreetMap
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }
+    ).addTo(map);
+
+    const markers = [];
+
+    // 在地圖上建立景點標記
+    places.forEach((place, index) => {
+      const url =
+        "https://www.google.com/maps/search/?api=1&query=" +
+        encodeURIComponent(place.name);
+
+      const marker = L.marker([
+        place.lat, place.lng
+      ]).addTo(map);
+
+      marker.bindPopup(
+        "<h3>" + place.name + "</h3>" +
+        "<p>" + place.desc + "</p>" +
+        '<a href="' + url +
+        '" target="_blank" rel="noopener noreferrer">' +
+        "📍 Google Maps 查看地點</a>"
+      );
+
+      markers.push(marker);
+
+      // 建立下方景點按鈕
+      const button = document.createElement("button");
+      button.textContent = place.name;
+      button.onclick = () => showPlace(index);
+      document.getElementById("placeButtons")
+        .appendChild(button);
+    });
+
+    // 顯示指定景點
+    function showPlace(index) {
+      const place = places[index];
+      document.getElementById("result").textContent =
+        "🎉 " + place.name;
+
+      map.flyTo([place.lat, place.lng], 12);
+      setTimeout(() => {
+        markers[index].openPopup();
+      }, 1000);
+    }
+
+    // 隨機抽出一個景點
+    function drawPlace() {
+      const index = Math.floor(
+        Math.random() * places.length
+      );
+      showPlace(index);
     }
   </script>
 </body>
