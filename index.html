@@ -177,9 +177,11 @@
         place.lat, place.lng
       ]).addTo(map);
 
-      const photo = place.name === "台北101"
-  ? "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Taipei_101_from_afar.jpg/640px-Taipei_101_from_afar.jpg"
+      
+const photo = place.name === "台北101"
+  ? "taipei101.png"
   : "";
+
 
 marker.bindPopup(
   (photo
