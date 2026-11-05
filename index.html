@@ -177,13 +177,21 @@
         place.lat, place.lng
       ]).addTo(map);
 
-      marker.bindPopup(
-        "<h3>" + place.name + "</h3>" +
-        "<p>" + place.desc + "</p>" +
-        '<a href="' + url +
-        '" target="_blank" rel="noopener noreferrer">' +
-        "📍 Google Maps 查看地點</a>"
-      );
+      const photo = place.name === "台北101"
+  ? "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Taipei_101_from_afar.jpg/640px-Taipei_101_from_afar.jpg"
+  : "";
+
+marker.bindPopup(
+  (photo
+    ? '<img src="' + photo +
+      '" style="width:100%;border-radius:10px;" alt="景點照片" onerror="this.style.display=\'none\'">'
+    : "") +
+  "<h3>" + place.name + "</h3>" +
+  "<p>" + place.desc + "</p>" +
+  '<a href="' + url +
+  '" target="_blank" rel="noopener noreferrer">' +
+  "📍 Google Maps 查看地點</a>"
+);
 
       markers.push(marker);
 
